@@ -1,26 +1,30 @@
 import { Trie } from "@ethereumjs/trie";
 import { keccak256 } from "ethereum-cryptography/keccak";
+import proofTest from "./proof";
 
 const trie = new Trie({});
 
 const emptyTrieRoot = trie.root();
-
-console.log({ emptyTrieRoot: emptyTrieRoot });
+// console.log(" -- Start with an empty Trie:  new Trie({})");
+// console.log({ emptyTrieRoot: "0x" + emptyTrieRoot.toString("hex") });
+// console.log(
+//   ' -- Update the trie (using "trie.put()") with the key-value pair "testKeyX": "testValueX"'
+// );
 
 const results: any[] = [];
 
 async function test(key: string, val: string) {
-  const prev_root = trie.root();
-  await trie.put(Buffer.from(keccak256(Buffer.from(key))), Buffer.from(val)); // We update (using "put") the trie with the key-value pair "testKeyX": "testValueX"
-  const value = await trie.get(Buffer.from(keccak256(Buffer.from(key)))); // We retrieve (using "get") the value at key "testKeyX"
+  await trie.put(Buffer.from(keccak256(Buffer.from(key))), Buffer.from(val));
+  const value = await trie.get(Buffer.from(keccak256(Buffer.from(key))));
 
-  const rootChange = {
-    test: `Trie.put(key: Buffer.from(${key}), value: Buffer.from(${value}))`,
-    result: { Previous_Trie_Root: prev_root, Updated_Trie_Root: trie.root() },
-  };
-  console.log(rootChange);
+  console.log({
+    Update_Trie: `trie.put(key: ${key}, value: ${value})`,
+  });
+  console.log({
+    updated_trie_root: "0x" + trie.root().toString("hex").slice(0, 16) + "...",
+  });
   results.push({
-    test: `await trie.get(key: Buffer.from(${key}))`,
+    Trie_get: `await trie.get(key: ${key})`,
     result: {
       value_bytes: value,
       value_string: value?.toString(),
@@ -33,12 +37,24 @@ const testData: [string, string][] = [
   ["testKey2", "testValue2"],
 ];
 
+const fillData: [Buffer, Buffer][] = [];
+for (let i = 2; i < 32; i++) {
+  fillData.push([
+    Buffer.from(keccak256(Buffer.from(`testKey${i}`))),
+    Buffer.from(`testValue${i}`),
+  ]);
+}
+
 const main = async () => {
   for (const t of testData) {
     await test(...t);
   }
-  console.log(results);
+  console.log(' -- Retrieve (using trie.get) the value at key "testKeyX"');
+  for (const result of results) {
+    console.log(result);
+  }
 };
 
-main();
+// main();
+proofTest();
 export {};
